@@ -1,6 +1,7 @@
 
 (ns advent.2023.14
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string]
+            [clojure.test :as test :refer :all]))
 
 (def example
   "O....#....
@@ -173,46 +174,59 @@ OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###
                           :rocks-after []}
             splits)))
 
-(defn get-max-load [rocks]
-  (inc (count (re-seq #"\n" rocks))))
+(defn get-max-load [columns]
+  (count (first columns)))
+
+(defn columns<->rows [items]
+  (let [new-count (count (first items))]
+    (for [i (range new-count)]
+      (->> (map #(nth % i) items)
+           (reduce str)))))
 
 (defn get-cols [rocks]
   (let [rows (string/split
-              (string/replace rocks #" " "") #"\n")
-        num-cols (count (first rows))]
-    (for [col-i (range num-cols)]
-      (reduce str (map #(nth % col-i) rows)))))
+              (string/replace rocks #" " "") #"\n")]
+    (columns<->rows rows)))
 
-(defn column-total [rocks]
-  (let [max-load (get-max-load rocks)]
-      (->> (get-cols rocks)
-           (map #(compute-load % max-load))
-           (map remove-tail))))
+(defn roll-rocks-north [columns]
+  (let [max-load (get-max-load columns)]
+  (->> columns
+       (map #(compute-load % max-load))
+       (map remove-tail))))
 
 ;;TODO:
 ;;Write columns<->rows.
 ;;write cycle based on rotation rocks-after.
-;;rewrite column-total for rock columns, so
+;;rewrite column-total for rock columns and add a test, so
 ;;total-load needs to be rewritten to parse rocks then send to
 ;;column-total.
 
-
-(defn columns<->rows [items])
-;;Map nth I for I in range first in
-;;This is first step to rotate;
-
 (defn rotate-clockwise [columns]
   (reverse (columns<->rows columns)))
-    
-(defn columns->rocks [totals]
-  (->> (map :rocks-after totals)
-       (interpose \n)
-       (flatten)
-       (reduce str)))
 
-(defn total-load [rocks]
-  (->> (column-total rocks)
+(defn rotate-and-roll [columns]
+  (->> ;;returns the new columns after rotating
+   (rotate-clockwise columns)
+   (roll-rocks-north)
+   (map :rocks-after)))
+
+;;finished here on dec 30
+;;change above to roll-and-rotate
+;;then one cycle is 4 of those with a reduce
+;;then i should be close.
+(defn one-cycle [])
+
+(defn north-beams-load [status-maps]
+  (->> status-maps
        (map :current-load)
        (reduce +)))
+       
+(defn rolled-north-load [rocks]
+  (->> (get-cols rocks)
+       (roll-rocks-north)
+       (north-beams-load)))
 
+(defn load-after-cycles [num-cycles])
 
+(deftest examples
+  (is (= (rolled-north-load question) 112046)))

@@ -121,22 +121,6 @@ O..O.O....O.O....O.O.O.O.......O.O...O..#O#.OOO#............#.........O..O#.OO#.
 OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###O.#.OO....OO....#...
 #.#.O..#....##....#..#................O.......#O.#O#O...##O.OO...O...#...O.##....O.O......##.O..#..O")
 
-
-
-
-;;for each column in (range first row)
-;;move rocks north
-;;keep track of already-covered and
-;;left-to-cover
-;;while something in left-to-cover
-;;try-swap already-covered to left-to-cover
-;;initiate already-covered to first item
-;;case 0. change nothing
-;;case .0 swap
-;;case 00 change nothing
-;;case .. change nothing
-
-;;noooo
 ;;split on #
 ;;;;for each n-column in (range first row)
 ;;count the newlines for the load calculation
@@ -152,7 +136,7 @@ OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###
   (concat (repeat num-rollers "O")
   (repeat (count
            (re-seq #"\." next-section)) ".")))
-
+  
 (defn load-between [{:keys [last-rock current-load
                             rocks-after] :as acc}
                     next-section]
@@ -177,6 +161,23 @@ OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###
 (defn get-max-load [columns]
   (count (first columns)))
 
+(defn indexes-of [e coll] (keep-indexed #(if (= e %2) %1) coll))
+;;Tuesday end of day:
+;;finish north-load calculation below and that should be good!
+
+(defn index->load [column max-load]
+  (->> column
+       (map (fn [index] (- max-load index)))
+       (reduce +)))
+
+(defn north-load [columns]
+  (let [max-load (get-max-load columns)]
+    (->>
+     (map #(indexes-of "O" %) columns)
+     (map #(index->load % max-load))
+     (map #(bigint %))
+     (reduce +))))
+    
 (defn columns<->rows [items]
   (let [new-count (count (first items))]
     (for [i (range new-count)]
@@ -194,27 +195,19 @@ OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###
        (map #(compute-load % max-load))
        (map remove-tail))))
 
-;;TODO:
-;;Write columns<->rows.
-;;write cycle based on rotation rocks-after.
-;;rewrite column-total for rock columns and add a test, so
-;;total-load needs to be rewritten to parse rocks then send to
-;;column-total.
-
 (defn rotate-clockwise [columns]
-  (reverse (columns<->rows columns)))
-
-(defn rotate-and-roll [columns]
+  (->> (columns<->rows columns)
+       reverse))
+       
+(defn roll-and-rotate [columns]
   (->> ;;returns the new columns after rotating
-   (rotate-clockwise columns)
-   (roll-rocks-north)
-   (map :rocks-after)))
+   (roll-rocks-north columns)
+   (map :rocks-after)
+   (rotate-clockwise)))
 
-;;finished here on dec 30
-;;change above to roll-and-rotate
-;;then one cycle is 4 of those with a reduce
-;;then i should be close.
-(defn one-cycle [])
+(defn cycles [rocks n]
+  (nth (iterate roll-and-rotate
+                (get-cols rocks)) (* n 4)))
 
 (defn north-beams-load [status-maps]
   (->> status-maps
@@ -226,7 +219,12 @@ OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###
        (roll-rocks-north)
        (north-beams-load)))
 
-(defn load-after-cycles [num-cycles])
+(defn load-after-cycles [num-cycles rocks]
+  (-> (get-cols rocks)
+      (cycles num-cycles)
+      (north-load)))
+
+(def given-cycles 1000000000)
 
 (deftest examples
   (is (= (rolled-north-load question) 112046)))

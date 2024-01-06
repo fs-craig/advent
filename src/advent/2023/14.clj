@@ -173,9 +173,8 @@ OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###
 (defn north-load [columns]
   (let [max-load (get-max-load columns)]
     (->>
-     (map #(indexes-of "O" %) columns)
+     (map #(indexes-of \O %) columns)
      (map #(index->load % max-load))
-     (map #(bigint %))
      (reduce +))))
     
 (defn columns<->rows [items]
@@ -208,6 +207,12 @@ OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###
 (defn cycles [rocks n]
   (nth (iterate roll-and-rotate
                 (get-cols rocks)) (* n 4)))
+
+(defn cycles [columns n]
+  (reduce (fn [acc idx]
+            (roll-and-rotate acc))
+          columns
+          (repeat (* n 4) 1)))
 
 (defn north-beams-load [status-maps]
   (->> status-maps

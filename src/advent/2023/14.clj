@@ -141,18 +141,28 @@ OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###
                             rocks-after] :as acc}
                     next-section]
   (let [num-rollers (count (re-seq #"O" next-section))
-        loads (range last-rock (- last-rock num-rollers) -1)]
-    {:last-rock (dec (- last-rock (count next-section)))
+        loads (range last-rock (- last-rock num-rollers) -1)
+        new-last (dec (- last-rock (count next-section)))
+        final-boulder (if (= new-last -1) "" "#")]
+    {:last-rock new-last
      :current-load (+ current-load (reduce + loads))
      :rocks-after (concat rocks-after
                           (roll-rocks next-section num-rollers)
-                          "#")}))
+                          final-boulder)}))
 
 (defn remove-tail [{:keys [rocks-after] :as status}]
   (assoc status :rocks-after (butlast rocks-after)))
 
+(defn split-boulders-str [column-str]
+  (string/split column-str #"#" -1))
+
+(defn split-boulders [column]
+  (->> 
+   (partition-by #(= % \#))
+   (remove #(= (first %) \#))))
+
 (defn compute-load [column-rocks max-load]
-  (let [splits (string/split column-rocks #"#" -1)]
+  (let [splits (split-boulders-str column-rocks)]
     (reduce load-between {:last-rock max-load
                           :current-load 0
                           :rocks-after []}
@@ -177,26 +187,29 @@ OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###
      (map #(index->load % max-load))
      (reduce +))))
     
-(defn columns<->rows [items]
-  (let [new-count (count (first items))]
-    (for [i (range new-count)]
+(defn columns<->rows [items reverse?]
+  (let [new-count (count (first items))
+        order (if reverse?
+                (range (dec new-count) -1 -1)
+                (range new-count))]
+    (for [i order]
       (->> (map #(nth % i) items)
            (reduce str)))))
 
 (defn get-cols [rocks]
   (let [rows (string/split
               (string/replace rocks #" " "") #"\n")]
-    (columns<->rows rows)))
+    (columns<->rows rows false)))
 
 (defn roll-rocks-north [columns]
   (let [max-load (get-max-load columns)]
   (->> columns
        (map #(compute-load % max-load))
-       (map remove-tail))))
+       ;(map remove-tail)
+       )))
 
 (defn rotate-clockwise [columns]
-  (->> (columns<->rows columns)
-       reverse))
+  (columns<->rows columns true))
        
 (defn roll-and-rotate [columns]
   (->> ;;returns the new columns after rotating

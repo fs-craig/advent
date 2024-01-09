@@ -172,8 +172,6 @@ OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###
   (count (first columns)))
 
 (defn indexes-of [e coll] (keep-indexed #(if (= e %2) %1) coll))
-;;Tuesday end of day:
-;;finish north-load calculation below and that should be good!
 
 (defn index->load [column max-load]
   (->> column
@@ -204,9 +202,7 @@ OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###
 (defn roll-rocks-north [columns]
   (let [max-load (get-max-load columns)]
   (->> columns
-       (map #(compute-load % max-load))
-       ;(map remove-tail)
-       )))
+       (map #(compute-load % max-load)))))
 
 (defn rotate-clockwise [columns]
   (columns<->rows columns true))
@@ -216,10 +212,6 @@ OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###
    (roll-rocks-north columns)
    (map :rocks-after)
    (rotate-clockwise)))
-
-(defn cycles [rocks n]
-  (nth (iterate roll-and-rotate
-                (get-cols rocks)) (* n 4)))
 
 (defn cycles [columns n]
   (reduce (fn [acc idx]
@@ -244,5 +236,12 @@ OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###
 
 (def given-cycles 1000000000)
 
+(def example-repeats [69 69 65 64 65 63 68])
+(defn example-cycle-load [num-cycles]
+  (->> (repeat example-repeats)
+       (concat [[104 87]])
+       (mapcat identity)
+       (#(nth % num-cycles))))
+  
 (deftest examples
   (is (= (rolled-north-load question) 112046)))

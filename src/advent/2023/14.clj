@@ -213,11 +213,12 @@ OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###
    (map :rocks-after)
    (rotate-clockwise)))
 
+(defn one-cycle [columns]
+  (nth (iterate roll-and-rotate columns)
+       4))
+
 (defn cycles [columns n]
-  (reduce (fn [acc idx]
-            (roll-and-rotate acc))
-          columns
-          (repeat (* n 4) 1)))
+  (rest (iterate one-cycle columns)))
 
 (defn north-beams-load [status-maps]
   (->> status-maps
@@ -229,19 +230,37 @@ OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###
        (roll-rocks-north)
        (north-beams-load)))
 
-(defn load-after-cycles [num-cycles rocks]
+(defn cycle-loads [num-cycles rocks]
   (-> (get-cols rocks)
       (cycles num-cycles)
-      (north-load)))
+      (#(map north-load %))
+      (#(take num-cycles %))))
 
 (def given-cycles 1000000000)
 
+;;after 1 cycle, etc.
+(def example-root [87 69])
 (def example-repeats [69 69 65 64 65 63 68])
-(defn example-cycle-load [num-cycles]
-  (->> (repeat example-repeats)
-       (concat [[104 87]])
-       (mapcat identity)
-       (#(nth % num-cycles))))
+
+;;4 root
+;;repeat 2
+;;given-cycles 7
+;;(rem (- 7 4) 2)
+;;need 3rd element
+;;broken into 2s
+;;need to dec for the nth element
+;;[1 2 3 4 5 6 5]
+(defn element-after [root repeats n]
+  (->> root
+       count
+       (- n)
+       (#(rem % (count repeats)))
+       dec
+       (nth repeats)))
   
 (deftest examples
-  (is (= (rolled-north-load question) 112046)))
+  (is (= (rolled-north-load question) 112046) "part 1")
+  (is (= (element-after example-root example-repeats given-cycles))
+      "part 2 example"))
+
+

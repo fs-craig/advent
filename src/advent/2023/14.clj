@@ -260,7 +260,42 @@ OO#......OO.......O..O..#.OOOO#O......#.###.#O...#O#O...#..O..O....O#.#...#O.###
   
 (deftest examples
   (is (= (rolled-north-load question) 112046) "part 1")
-  (is (= (element-after example-root example-repeats given-cycles))
+  (is (= (element-after example-root example-repeats given-cycles) 64)
       "part 2 example"))
+                                
+(def question-root
+  (map-indexed #(vec [%1 %2]) (cycle-loads 190 question)))
+(def question-repeats
+  [[190 104640]
+ [191 104637]
+ [192 104625]
+ [193 104634]
+ [194 104626]
+ [195 104632]
+ [196 104642]
+ [197 104647]
+ [198 104644]
+ [199 104618]
+ [200 104627]
+ [201 104633]
+ [202 104639]
+ [203 104635]
+ [204 104640]
+ [205 104651]
+ [206 104625]
+ [207 104620]
+ [208 104626]
+ [209 104646]
+ [210 104642]
+ [211 104633]
+ [212 104644]
+ [213 104632]
+ [214 104627]
+ [215 104619]
+ [216 104639]
+ [217 104649]])
 
-
+;;64seconds though!
+;;and did 500 cycles first to find the repeated values manually.
+;;(element-after question-root question-repeats given-cycles)
+;;[215 104619]

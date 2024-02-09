@@ -16,3 +16,26 @@
 ;;vectors of cube-sets
 ;;next time: decide whether to parse the game id or map-indexed.  For
 ;;now, map-indexed is probably easier.
+
+(defn balls->map-e "\"3 blue\""
+  [ball-str]
+  (let [[num ball] (string/split ball-str #" ")]
+    [ball (read-string num)]))
+
+(defn draw->map [draw-str]
+  (->> (string/split draw-str #", ")
+       (map balls->map-e)
+       (reduce conj {})))
+
+(defn map-in [f xs]
+  (map #(map f %) xs))
+  
+(defn parse-input [path]
+  (->> (slurp path)
+       (#(string/split % #"\n")  )
+       (map #(string/split % #": "))
+       (map rest)
+       (map first)
+       (map #(string/split % #"; "))
+       (map-in draw->map)))
+       

@@ -5,6 +5,8 @@
 
 (def resources "resources/2023/2/")
 (def example-1 (str resources "example_1.txt"))
+(def example-2 (str resources "example_2.txt"))
+(def input (str resources "input.txt"))
 (load-file (str resources "answers.clj"))
 
 
@@ -68,8 +70,29 @@
    (map inc)
    (reduce +)))
 
+;;------Part 2
+(defn min-cubes [color draws]
+  (let 
+      [cube-nums (filter identity (map color draws))]
+    (if (empty? cube-nums)
+      0
+      (apply max cube-nums))))
+
+(defn power [draws check]
+  (apply * (for [[color _] check]
+             (min-cubes color draws))))
+
+(defn sum-powers [input-path check]
+  (->> (parse-input input-path)
+       (map #(power % check))
+       (reduce +)))
+  
 (deftest check-answers
   (is (= (sum-ids example-1 example-1-bag)
-         example-1-answer)))
+         example-1-answer))
+  (is (= (sum-ids input example-1-bag)
+         part-1-answer))
+  (is (= (sum-powers example-2 example-1-bag)
+         example-2-answer)))
 
 

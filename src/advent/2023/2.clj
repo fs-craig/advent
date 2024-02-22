@@ -93,6 +93,8 @@
   (is (= (sum-ids input example-1-bag)
          part-1-answer))
   (is (= (sum-powers example-2 example-1-bag)
-         example-2-answer)))
+         example-2-answer))
+  (is (= (sum-powers input example-1-bag)
+         part-2-answer)))
 
 
